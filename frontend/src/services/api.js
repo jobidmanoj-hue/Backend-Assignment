@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://backend-assignment-xspa.onrender.com",
+  baseURL: "https://backend-assignment-xspa.onrender.com/api/v1",
 });
 
 API.interceptors.request.use((req) => {
