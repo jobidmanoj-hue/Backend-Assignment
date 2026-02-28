@@ -7,56 +7,66 @@ const rateLimit = require("express-rate-limit");
 
 const connectDB = require("./config/db");
 const { swaggerUi, specs } = require("./swagger");
+const errorHandler = require("./middleware/errorMiddleware");
 
 connectDB();
 
 const app = express();
 
-// 🔐 Security Middlewares (FIRST)
+/* ================= SECURITY MIDDLEWARE ================= */
+
+// Helmet
 app.use(helmet());
-app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://backend-assignment-phi-two.vercel.app",
-    "https://backend-assignment-qqs7m5h5s-jobidmanoj-hues-projects.vercel.app"
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}));app.use(express.json());
+
+// Morgan logger
 app.use(morgan("dev"));
 
-// 🚦 Rate Limiter (BEFORE ROUTES)
+// ✅ FINAL WORKING CORS (Production Safe)
+app.use(cors({
+  origin: true,              // Allow all origins
+  credentials: true
+}));
+
+// Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
-  message: "Too many requests from this IP, please try again later.",
+  message: "Too many requests from this IP, please try again later."
 });
 
 app.use(limiter);
 
-// ✅ Root Route
+// Body parser
+app.use(express.json());
+
+/* ================= ROUTES ================= */
+
+// Root test route
 app.get("/", (req, res) => {
   res.json({ message: "Backend Running Successfully" });
 });
 
-// 📄 Swagger
+// Swagger docs
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
-// 📌 API Routes
+// API routes
 app.use("/api/v1/auth", require("./routes/authRoutes"));
 app.use("/api/v1/tasks", require("./routes/taskRoutes"));
 
-// ❌ 404 Handler (AFTER ROUTES)
+// 404 handler
 app.use((req, res, next) => {
   const error = new Error("Route not found");
   error.statusCode = 404;
   next(error);
 });
 
-// 🔥 Global Error Handler (LAST)
-const errorHandler = require("./middleware/errorMiddleware");
+// Global error handler
 app.use(errorHandler);
 
-app.listen(process.env.PORT || 5000, () =>
-  console.log(`Server running on port ${process.env.PORT || 5000}`)
+/* ================= START SERVER ================= */
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () =>
+  console.log(`Server running on port ${PORT}`)
 );
