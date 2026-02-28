@@ -19,7 +19,9 @@ function Login() {
     console.log("FULL RESPONSE:", res);
     console.log("RESPONSE DATA:", res.data);
 
-localStorage.setItem("token", res.data.data.token);
+    // ✅ FIXED HERE
+    localStorage.setItem("token", res.data.data.token);
+
     alert("Login Successful");
     navigate("/dashboard");
 
